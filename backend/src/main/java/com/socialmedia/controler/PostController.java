@@ -1,18 +1,18 @@
-package com.socialmedia.controller;
+package com.socialmedia.controler;
 
-import com.socialmedia.dto.PostRequest;
-import com.socialmedia.dto.PostResponse;
 import com.socialmedia.model.Post;
 import com.socialmedia.service.PostService;
-import com.socialmedia.service.LikeService;
-import com.socialmedia.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -20,89 +20,67 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
-    private final LikeService likeService;
 
-    @PostMapping
-    public ResponseEntity<PostResponse> createPost(
-            @RequestBody PostRequest request,
-            @AuthenticationPrincipal User currentUser
-    ) {
-        Post post = Post.builder()
-                .caption(request.getCaption())
-                .mediaUrl(request.getMediaUrl())
-                .mediaType(request.getMediaType())
-                .build();
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<Post> createPost(
+            @RequestParam("caption") String caption,
+            @RequestParam(value = "media", required = false) MultipartFile media,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws IOException {
+        Post post = postService.createPost(caption, media, userDetails.getUsername());
+        return ResponseEntity.ok(post);
+    }
 
-        Post savedPost = postService.createPost(post, currentUser);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mapToPostResponse(savedPost, currentUser));
+    @GetMapping("/{postId}")
+    public ResponseEntity<Post> getPost(@PathVariable Long postId) {
+        return ResponseEntity.ok(postService.getPost(postId));
     }
 
     @GetMapping
-    public ResponseEntity<Page<PostResponse>> getFeedPosts(
-            @AuthenticationPrincipal User currentUser,
-            Pageable pageable
+    public ResponseEntity<Page<Post>> getAllPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy
     ) {
-        Page<Post> posts = postService.getFeedPosts(pageable);
-        return ResponseEntity.ok(posts.map(post -> mapToPostResponse(post, currentUser)));
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortBy).descending());
+        return ResponseEntity.ok(postService.getAllPosts(pageRequest));
     }
 
-    @GetMapping("/trending")
-    public ResponseEntity<Page<PostResponse>> getTrendingPosts(
-            @AuthenticationPrincipal User currentUser,
-            Pageable pageable
+    @GetMapping("/by-likes")
+    public ResponseEntity<Page<Post>> getPostsByLikes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        Page<Post> posts = postService.getTrendingPosts(pageable);
-        return ResponseEntity.ok(posts.map(post -> mapToPostResponse(post, currentUser)));
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(postService.getPostsByLikes(pageRequest));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PostResponse> getPost(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User currentUser
+    @GetMapping("/user")
+    public ResponseEntity<Page<Post>> getUserPosts(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
     ) {
-        Post post = postService.getPost(id);
-        return ResponseEntity.ok(mapToPostResponse(post, currentUser));
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(postService.getPostsByUser(userDetails.getUsername(), pageRequest));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PostResponse> updatePost(
-            @PathVariable Long id,
-            @RequestBody PostRequest request,
-            @AuthenticationPrincipal User currentUser
+    @PutMapping("/{postId}")
+    public ResponseEntity<Post> updatePost(
+            @PathVariable Long postId,
+            @RequestParam String caption,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Post postToUpdate = Post.builder()
-                .caption(request.getCaption())
-                .mediaUrl(request.getMediaUrl())
-                .mediaType(request.getMediaType())
-                .build();
-
-        Post updatedPost = postService.updatePost(id, postToUpdate, currentUser);
-        return ResponseEntity.ok(mapToPostResponse(updatedPost, currentUser));
+        Post updatedPost = postService.updatePost(postId, caption, userDetails.getUsername());
+        return ResponseEntity.ok(updatedPost);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
-            @PathVariable Long id,
-            @AuthenticationPrincipal User currentUser
-    ) {
-        postService.deletePost(id, currentUser);
+            @PathVariable Long postId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws IOException {
+        postService.deletePost(postId, userDetails.getUsername());
         return ResponseEntity.noContent().build();
-    }
-
-    private PostResponse mapToPostResponse(Post post, User currentUser) {
-        PostResponse response = new PostResponse();
-        response.setId(post.getId());
-        response.setCaption(post.getCaption());
-        response.setMediaUrl(post.getMediaUrl());
-        response.setMediaType(post.getMediaType());
-        response.setAuthorName(post.getUser().getFirstname() + " " + post.getUser().getLastname());
-        response.setAuthorId(post.getUser().getId());
-        response.setLikesCount(likeService.getPostLikesCount(post.getId()));
-        response.setCommentsCount(post.getComments().size());
-        response.setLiked(likeService.hasUserLikedPost(post.getId(), currentUser));
-        response.setCreatedAt(post.getCreatedAt());
-        response.setUpdatedAt(post.getUpdatedAt());
-        return response;
     }
 }
