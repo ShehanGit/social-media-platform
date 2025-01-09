@@ -1,4 +1,4 @@
-package com.socialmedia.controler;
+package com.socialmedia.controller;
 
 import com.socialmedia.model.Post;
 import com.socialmedia.service.PostService;

@@ -1,10 +1,9 @@
 package com.socialmedia.user;
 
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
-import com.socialmedia.model.Post;
+import com.socialmedia.model.UserRelationship;
 import jakarta.persistence.*;
+import java.util.Collection;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,9 +11,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Data
 @Builder
@@ -22,9 +19,6 @@ import java.util.List;
 @AllArgsConstructor
 @Entity
 @Table(name = "_user")
-@JsonIdentityInfo(
-        generator = ObjectIdGenerators.PropertyGenerator.class,
-        property = "id")
 public class User implements UserDetails {
 
   @Id
@@ -33,18 +27,42 @@ public class User implements UserDetails {
   private String firstname;
   private String lastname;
   private String email;
-
-  @JsonIgnore
   private String password;
+  private String username;
+  private String bio;
+  private String profilePictureUrl;
+  private String website;
+  private String phone;
+  private String location;
+
+  @Column(updatable = false)
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
 
   @Enumerated(EnumType.STRING)
   private Role role;
 
-  @OneToMany(mappedBy = "user")
-  private List<Post> posts;
+  @OneToMany(mappedBy = "follower")
+  private List<UserRelationship> following;
+
+  @OneToMany(mappedBy = "following")
+  private List<UserRelationship> followers;
+
+  @PrePersist
+  protected void onCreate() {
+    createdAt = LocalDateTime.now();
+    updatedAt = LocalDateTime.now();
+    if (username == null) {
+      username = email;
+    }
+  }
+
+  @PreUpdate
+  protected void onUpdate() {
+    updatedAt = LocalDateTime.now();
+  }
 
   @Override
-  @JsonIgnore
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return List.of(new SimpleGrantedAuthority(role.name()));
   }
@@ -60,25 +78,21 @@ public class User implements UserDetails {
   }
 
   @Override
-  @JsonIgnore
   public boolean isAccountNonExpired() {
     return true;
   }
 
   @Override
-  @JsonIgnore
   public boolean isAccountNonLocked() {
     return true;
   }
 
   @Override
-  @JsonIgnore
   public boolean isCredentialsNonExpired() {
     return true;
   }
 
   @Override
-  @JsonIgnore
   public boolean isEnabled() {
     return true;
   }

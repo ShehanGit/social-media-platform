@@ -1,4 +1,4 @@
-package com.socialmedia.controler;
+package com.socialmedia.controller;
 
 import com.socialmedia.service.LikeService;
 import lombok.RequiredArgsConstructor;

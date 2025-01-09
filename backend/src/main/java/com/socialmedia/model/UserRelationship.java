@@ -31,8 +31,41 @@ public class UserRelationship {
     @Column(updatable = false)
     private LocalDateTime createdAt;
 
+    private boolean isMuted;
+    private boolean isClose;
+    private boolean isBlocked;
+    private String notificationPreference;
+
+    @Enumerated(EnumType.STRING)
+    private RelationshipStatus status;
+
+    public enum RelationshipStatus {
+        PENDING,
+        ACCEPTED,
+        BLOCKED
+    }
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
+        if (status == null) {
+            status = RelationshipStatus.ACCEPTED;
+        }
+        if (notificationPreference == null) {
+            notificationPreference = "ALL";
+        }
+    }
+
+    // Helper methods
+    public boolean isActive() {
+        return status == RelationshipStatus.ACCEPTED && !isBlocked;
+    }
+
+    public boolean canInteract() {
+        return isActive() && !isMuted;
+    }
+
+    public boolean canReceiveNotifications() {
+        return canInteract() && !"NONE".equals(notificationPreference);
     }
 }
