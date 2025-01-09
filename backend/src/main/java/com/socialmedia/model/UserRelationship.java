@@ -13,9 +13,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "followers",
+@Table(name = "user_relationships",
         uniqueConstraints = @UniqueConstraint(columnNames = {"follower_id", "following_id"}))
-public class Follower {
+public class UserRelationship {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
