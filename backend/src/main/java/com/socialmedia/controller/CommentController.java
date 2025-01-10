@@ -1,75 +1,71 @@
 package com.socialmedia.controller;
 
-import com.socialmedia.dto.CommentRequest;
-import com.socialmedia.dto.CommentResponse;
-import com.socialmedia.model.Comment;
+import com.socialmedia.dto.CommentDto;
 import com.socialmedia.service.CommentService;
-import com.socialmedia.user.User;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
-@RequestMapping("/api/v1/posts/{postId}/comments")
+@RequestMapping("/api/v1/posts")
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class CommentController {
     private final CommentService commentService;
 
-    @PostMapping
-    public ResponseEntity<CommentResponse> createComment(
+
+
+    @PostMapping("/{postId}/comments")
+    public ResponseEntity<CommentDto.Response> createComment(
             @PathVariable Long postId,
-            @RequestBody CommentRequest request,
-            @AuthenticationPrincipal User currentUser
+            @Valid @RequestBody CommentDto.Request request,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Comment comment = commentService.createComment(postId, request.getContent(), currentUser);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(mapToCommentResponse(comment));
+        CommentDto.Response response = commentService.createComment(postId, request, userDetails.getUsername());
+        return ResponseEntity.ok(response);
     }
 
-    @GetMapping
-    public ResponseEntity<Page<CommentResponse>> getPostComments(
+    @GetMapping("/{postId}/comments")
+    public ResponseEntity<Page<CommentDto.Response>> getPostComments(
             @PathVariable Long postId,
-            Pageable pageable
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Page<Comment> comments = commentService.getPostComments(postId, pageable);
-        return ResponseEntity.ok(comments.map(this::mapToCommentResponse));
+        PageRequest pageRequest = PageRequest.of(page, size);
+        Page<CommentDto.Response> comments = commentService.getPostComments(postId, userDetails.getUsername(), pageRequest);
+        return ResponseEntity.ok(comments);
     }
 
-    @PutMapping("/{commentId}")
-    public ResponseEntity<CommentResponse> updateComment(
-            @PathVariable Long postId,
+    @PutMapping("/comments/{commentId}")
+    public ResponseEntity<CommentDto.Response> updateComment(
             @PathVariable Long commentId,
-            @RequestBody CommentRequest request,
-            @AuthenticationPrincipal User currentUser
+            @Valid @RequestBody CommentDto.Request request,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Comment comment = commentService.updateComment(commentId, request.getContent(), currentUser);
-        return ResponseEntity.ok(mapToCommentResponse(comment));
+        CommentDto.Response response = commentService.updateComment(commentId, request, userDetails.getUsername());
+        return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{commentId}")
+    @DeleteMapping("/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
-            @PathVariable Long postId,
             @PathVariable Long commentId,
-            @AuthenticationPrincipal User currentUser
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        commentService.deleteComment(commentId, currentUser);
+        commentService.deleteComment(commentId, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
 
-    private CommentResponse mapToCommentResponse(Comment comment) {
-        CommentResponse response = new CommentResponse();
-        response.setId(comment.getId());
-        response.setContent(comment.getContent());
-        response.setAuthorName(comment.getUser().getFirstname() + " " + comment.getUser().getLastname());
-        response.setAuthorId(comment.getUser().getId());
-        response.setPostId(comment.getPost().getId());
-        response.setCreatedAt(comment.getCreatedAt());
-        response.setUpdatedAt(comment.getUpdatedAt());
-        return response;
+    @GetMapping("/{postId}/comments/count")
+    public ResponseEntity<Map<String, Long>> getCommentsCount(@PathVariable Long postId) {
+        long count = commentService.getCommentsCount(postId);
+        return ResponseEntity.ok(Map.of("count", count));
     }
 }

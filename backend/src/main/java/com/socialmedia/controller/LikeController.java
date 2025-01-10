@@ -1,42 +1,53 @@
 package com.socialmedia.controller;
 
-import com.socialmedia.model.Like;
 import com.socialmedia.service.LikeService;
-import com.socialmedia.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import java.util.Optional;
+
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/posts/{postId}/likes")
+@RequestMapping("/api/v1/posts")
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class LikeController {
     private final LikeService likeService;
 
-    @PostMapping
-    public ResponseEntity<Void> toggleLike(
+    @PostMapping("/{postId}/like")
+    public ResponseEntity<Map<String, Object>> toggleLike(
             @PathVariable Long postId,
-            @AuthenticationPrincipal User currentUser
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        Optional<Like> result = likeService.toggleLike(postId, currentUser);
-        return result.isPresent()
-                ? ResponseEntity.ok().build()
-                : ResponseEntity.noContent().build();
+        likeService.toggleLike(postId, userDetails.getUsername());
+        boolean isLiked = likeService.hasUserLikedPost(postId, userDetails.getUsername());
+        long likeCount = likeService.getLikesCount(postId);
+
+        return ResponseEntity.ok(Map.of(
+                "liked", isLiked,
+                "likeCount", likeCount
+        ));
     }
 
-    @GetMapping("/count")
-    public ResponseEntity<Long> getLikesCount(@PathVariable Long postId) {
-        return ResponseEntity.ok(likeService.getPostLikesCount(postId));
+    @GetMapping("/{postId}/like/status")
+    public ResponseEntity<Map<String, Object>> getLikeStatus(
+            @PathVariable Long postId,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) {
+        boolean isLiked = likeService.hasUserLikedPost(postId, userDetails.getUsername());
+        long likeCount = likeService.getLikesCount(postId);
+
+        return ResponseEntity.ok(Map.of(
+                "liked", isLiked,
+                "likeCount", likeCount
+        ));
     }
 
-    @GetMapping("/status")
-    public ResponseEntity<Boolean> hasUserLikedPost(
-            @PathVariable Long postId,
-            @AuthenticationPrincipal User currentUser
-    ) {
-        return ResponseEntity.ok(likeService.hasUserLikedPost(postId, currentUser));
+    @GetMapping("/{postId}/likes/count")
+    public ResponseEntity<Map<String, Long>> getLikesCount(@PathVariable Long postId) {
+        long count = likeService.getLikesCount(postId);
+        return ResponseEntity.ok(Map.of("count", count));
     }
 }

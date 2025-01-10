@@ -2,12 +2,13 @@ package com.socialmedia.controller;
 
 import com.socialmedia.model.Post;
 import com.socialmedia.service.PostService;
-import com.socialmedia.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,12 +21,14 @@ import java.io.IOException;
 public class PostController {
     private final PostService postService;
 
-    @GetMapping
-    public ResponseEntity<Page<Post>> getPosts(
-            @RequestParam(defaultValue = "time") String sortBy,
-            Pageable pageable
-    ) {
-        return ResponseEntity.ok(postService.getPosts(sortBy, pageable));
+    @PostMapping(consumes = { "multipart/form-data" })
+    public ResponseEntity<Post> createPost(
+            @RequestParam("caption") String caption,
+            @RequestParam(value = "media", required = false) MultipartFile media,
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws IOException {
+        Post post = postService.createPost(caption, media, userDetails.getUsername());
+        return ResponseEntity.ok(post);
     }
 
     @GetMapping("/{postId}")
@@ -33,30 +36,51 @@ public class PostController {
         return ResponseEntity.ok(postService.getPost(postId));
     }
 
-    @PostMapping
-    public ResponseEntity<Post> createPost(
-            @AuthenticationPrincipal User user,
-            @RequestParam String caption,
-            @RequestParam MultipartFile mediaFile
-    ) throws IOException {
-        return ResponseEntity.ok(postService.createPost(user, caption, mediaFile));
+    @GetMapping
+    public ResponseEntity<Page<Post>> getAllPosts(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(sortBy).descending());
+        return ResponseEntity.ok(postService.getAllPosts(pageRequest));
+    }
+
+    @GetMapping("/by-likes")
+    public ResponseEntity<Page<Post>> getPostsByLikes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(postService.getPostsByLikes(pageRequest));
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<Page<Post>> getUserPosts(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        PageRequest pageRequest = PageRequest.of(page, size);
+        return ResponseEntity.ok(postService.getPostsByUser(userDetails.getUsername(), pageRequest));
     }
 
     @PutMapping("/{postId}")
     public ResponseEntity<Post> updatePost(
             @PathVariable Long postId,
-            @AuthenticationPrincipal User user,
-            @RequestParam String caption
+            @RequestParam String caption,
+            @AuthenticationPrincipal UserDetails userDetails
     ) {
-        return ResponseEntity.ok(postService.updatePost(postId, user, caption));
+        Post updatedPost = postService.updatePost(postId, caption, userDetails.getUsername());
+        return ResponseEntity.ok(updatedPost);
     }
 
     @DeleteMapping("/{postId}")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
-            @AuthenticationPrincipal User user
-    ) {
-        postService.deletePost(postId, user);
+            @AuthenticationPrincipal UserDetails userDetails
+    ) throws IOException {
+        postService.deletePost(postId, userDetails.getUsername());
         return ResponseEntity.noContent().build();
     }
 }

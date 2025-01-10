@@ -1,5 +1,7 @@
 package com.socialmedia.model;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.socialmedia.user.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -16,6 +18,9 @@ import java.time.LocalDateTime;
 @Table(name = "likes", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"user_id", "post_id"})
 })
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.PropertyGenerator.class,
+        property = "id")
 public class Like {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

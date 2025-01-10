@@ -1,60 +1,101 @@
 package com.socialmedia.service;
 
+import com.socialmedia.dto.CommentDto;
+import com.socialmedia.exception.ResourceNotFoundException;
 import com.socialmedia.model.Comment;
 import com.socialmedia.model.Post;
-import com.socialmedia.user.User;
 import com.socialmedia.repository.CommentRepository;
+import com.socialmedia.repository.PostRepository;
+import com.socialmedia.user.User;
+import com.socialmedia.user.UserRepository;
+
+
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
 public class CommentService {
     private final CommentRepository commentRepository;
-    private final PostService postService;
+    private final PostRepository postRepository;
+    private final UserRepository userRepository;
+
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Transactional
-    public Comment createComment(Long postId, String content, User currentUser) {
-        Post post = postService.getPost(postId);
+    public CommentDto.Response createComment(Long postId, CommentDto.Request request, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
         Comment comment = Comment.builder()
-                .content(content)
+                .content(request.getContent())
+                .user(user)
                 .post(post)
-                .user(currentUser)
                 .build();
 
-        return commentRepository.save(comment);
+        Comment savedComment = commentRepository.save(comment);
+        return convertToDto(savedComment, userEmail);
     }
 
-    public Comment getComment(Long id) {
-        return commentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Comment not found"));
-    }
+    public Page<CommentDto.Response> getPostComments(Long postId, String userEmail, Pageable pageable) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-    public Page<Comment> getPostComments(Long postId, Pageable pageable) {
-        return commentRepository.findByPostIdOrderByCreatedAtDesc(postId, pageable);
-    }
-
-    @Transactional
-    public Comment updateComment(Long id, String content, User currentUser) {
-        Comment comment = getComment(id);
-        if (!comment.getUser().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("Not authorized to update this comment");
-        }
-
-        comment.setContent(content);
-        return commentRepository.save(comment);
+        Page<Comment> comments = commentRepository.findByPostOrderByCreatedAtDesc(post, pageable);
+        return comments.map(comment -> convertToDto(comment, userEmail));
     }
 
     @Transactional
-    public void deleteComment(Long id, User currentUser) {
-        Comment comment = getComment(id);
-        if (!comment.getUser().getId().equals(currentUser.getId())) {
-            throw new RuntimeException("Not authorized to delete this comment");
+    public CommentDto.Response updateComment(Long commentId, CommentDto.Request request, String userEmail) {
+        Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        if (!comment.getUser().getEmail().equals(userEmail)) {
+            throw new IllegalStateException("Not authorized to update this comment");
         }
+
+        comment.setContent(request.getContent());
+        Comment updatedComment = commentRepository.save(comment);
+        return convertToDto(updatedComment, userEmail);
+    }
+
+
+    @Transactional
+    public void deleteComment(Long commentId, String userEmail) {
+             Comment comment = commentRepository.findById(commentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+            if (!comment.getUser().getEmail().equals(userEmail) &&
+                !comment.getPost().getUser().getEmail().equals(userEmail)) {
+            throw new IllegalStateException("Not authorized to delete this comment");
+        }
+
         commentRepository.delete(comment);
+    }
+
+    public long getCommentsCount(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+        return commentRepository.countByPost(post);
+    }
+
+    private CommentDto.Response convertToDto(Comment comment, String currentUserEmail) {
+        return CommentDto.Response.builder()
+                .id(comment.getId())
+                .content(comment.getContent())
+                .userEmail(comment.getUser().getEmail())
+                .userName(comment.getUser().getFirstname() + " " + comment.getUser().getLastname())
+                .createdAt(comment.getCreatedAt().format(formatter))
+                .updatedAt(comment.getUpdatedAt().format(formatter))
+                .isAuthor(comment.getUser().getEmail().equals(currentUserEmail))
+                .build();
     }
 }
