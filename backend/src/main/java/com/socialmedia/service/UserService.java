@@ -1,6 +1,9 @@
-package com.socialmedia.user;
+package com.socialmedia.service;
 
+import com.socialmedia.dto.UserDto;
 import com.socialmedia.exception.ResourceNotFoundException;
+import com.socialmedia.user.User;
+import com.socialmedia.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,7 +34,7 @@ public class UserService {
     }
 
     @Transactional
-    public User updateUser(String email, UserUpdateRequest request) {
+    public User updateUser(String email, UserDto.UpdateRequest request) {
         User user = getUserByEmail(email);
 
         if (request.getUsername() != null && !request.getUsername().equals(user.getUsername())) {
@@ -61,6 +64,21 @@ public class UserService {
         }
 
         return userRepository.save(user);
+    }
+
+    public UserDto.UserResponse convertToUserResponse(User user) {
+        return UserDto.UserResponse.builder()
+                .id(user.getId())
+                .username(user.getUsername())
+                .firstname(user.getFirstname())
+                .lastname(user.getLastname())
+                .email(user.getEmail())
+                .bio(user.getBio())
+                .profilePictureUrl(user.getProfilePictureUrl())
+                .website(user.getWebsite())
+                .phone(user.getPhone())
+                .location(user.getLocation())
+                .build();
     }
 
     public Page<User> searchUsers(String query, Pageable pageable) {

@@ -1,6 +1,7 @@
 package com.socialmedia.controller;
 
-import com.socialmedia.dto.UserUpdateRequest;
+import com.socialmedia.dto.UserDto;
+import com.socialmedia.service.UserService;
 import com.socialmedia.user.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,43 +19,45 @@ import java.util.Map;
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class UserController {
-    private final com.socialmedia.user.UserService userService;
+    private final UserService userService;
 
     @GetMapping("/me")
-    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
+    public ResponseEntity<UserDto.UserResponse> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         User user = userService.getUserByEmail(userDetails.getUsername());
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userService.convertToUserResponse(user));
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<User> getUserById(@PathVariable Integer userId) {
+    public ResponseEntity<UserDto.UserResponse> getUserById(@PathVariable Integer userId) {
         User user = userService.getUserById(userId);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userService.convertToUserResponse(user));
     }
 
     @GetMapping("/username/{username}")
-    public ResponseEntity<User> getUserByUsername(@PathVariable String username) {
+    public ResponseEntity<UserDto.UserResponse> getUserByUsername(@PathVariable String username) {
         User user = userService.getUserByUsername(username);
-        return ResponseEntity.ok(user);
+        return ResponseEntity.ok(userService.convertToUserResponse(user));
     }
 
     @PutMapping("/me")
-    public ResponseEntity<User> updateUser(
+    public ResponseEntity<UserDto.UserResponse> updateUser(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody UserUpdateRequest updateRequest
+            @RequestBody UserDto.UpdateRequest updateRequest
     ) {
         User updatedUser = userService.updateUser(userDetails.getUsername(), updateRequest);
-        return ResponseEntity.ok(updatedUser);
+        return ResponseEntity.ok(userService.convertToUserResponse(updatedUser));
     }
 
     @GetMapping("/search")
-    public ResponseEntity<Page<User>> searchUsers(
+    public ResponseEntity<Page<UserDto.UserResponse>> searchUsers(
             @RequestParam String query,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
         PageRequest pageRequest = PageRequest.of(page, size);
-        return ResponseEntity.ok(userService.searchUsers(query, pageRequest));
+        Page<User> users = userService.searchUsers(query, pageRequest);
+        Page<UserDto.UserResponse> response = users.map(userService::convertToUserResponse);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{userId}/stats")
