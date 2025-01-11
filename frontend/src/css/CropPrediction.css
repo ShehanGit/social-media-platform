@@ -1,0 +1,113 @@
+Main container
+.dashboard-container {
+    display: flex;
+  
+    background-color: #e6f2ff;
+    height: 800px;
+  }
+  
+  /* Sidebar styling */
+  .sidebar {
+    width: 320px;
+    background-color: #ffffff;
+    padding: 20px;
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px 0 0 10px;
+    margin-left: 20px;
+    margin-top: 20px;
+  }
+  
+  .sidebar h2 {
+    font-size: 24px;
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+  }
+  
+  /* Form styling */
+  .crop-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .crop-form label {
+    font-size: 14px;
+    color: #444;
+    margin-bottom: -10px;
+  }
+  
+  .crop-form input {
+    
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+  }
+  
+  button {
+    margin-top: 20px;
+    padding: 10px 15px;
+    font-size: 16px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* Result display area */
+  .result-display {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 30px;
+    background-color: #e6f2ff;
+    border-radius: 0 10px 10px 0;
+    text-align: center;
+  }
+  
+  /* Result card styling */
+  .result-card {
+    background-color: #ffffff;
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .result-card h3 {
+    font-size: 22px;
+    color: #007bff;
+    margin-bottom: 15px;
+  }
+  
+  .result-card p {
+    font-size: 20px;
+    color: #333;
+    font-weight: bold;
+  }
+  
+  /* Placeholder styling */
+  .placeholder {
+    color: #666;
+    font-size: 18px;
+    max-width: 400px;
+    text-align: center;
+  }
+  
+  /* Error message styling */
+  .error {
+    color: red;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+  
