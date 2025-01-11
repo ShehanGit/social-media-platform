@@ -1,4 +1,3 @@
-// src/components/post/PostCard.tsx
 import { useState } from 'react';
 import { HeartIcon, ChatBubbleLeftIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { HeartIcon as HeartIconSolid } from '@heroicons/react/24/solid';
@@ -14,8 +13,8 @@ interface PostCardProps {
   onDelete?: (postId: number) => void;
 }
 
-const PostCard = ({ post, onDelete }: PostCardProps) => {
-  const { user } = useAuth();
+const PostCard: React.FC<PostCardProps> = ({ post, onDelete }) => {
+  const { user: currentUser } = useAuth();
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes?.length || 0);
   const [showComments, setShowComments] = useState(false);
@@ -43,24 +42,33 @@ const PostCard = ({ post, onDelete }: PostCardProps) => {
     }
   };
 
+  // Handle case where post user data might be missing
+  if (!post.user) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-4">
+        <p className="text-gray-500">Post data unavailable</p>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Post Header */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <img
-            src={post.user.profilePictureUrl || '/default-avatar.png'}
-            alt={post.user.username}
+            src={post.user.profilePictureUrl || '/default-avatar.png'} // Provide default avatar
+            alt={post.user.username || 'User'}
             className="h-10 w-10 rounded-full object-cover"
           />
           <div>
-            <p className="font-semibold">{post.user.username}</p>
+            <p className="font-semibold">{post.user.username || 'Unknown User'}</p>
             <p className="text-xs text-gray-500">
               {format(new Date(post.createdAt), 'MMM d, yyyy')}
             </p>
           </div>
         </div>
-        {user?.id === post.user.id && (
+        {currentUser?.id === post.user.id && (
           <button
             onClick={handleDelete}
             className="text-gray-400 hover:text-red-500"
@@ -115,6 +123,24 @@ const PostCard = ({ post, onDelete }: PostCardProps) => {
         {/* Caption */}
         <p className="mt-4">{post.caption}</p>
       </div>
+
+      {/* Comments Section */}
+      {showComments && (
+        <div className="p-4 border-t">
+          {post.comments && post.comments.length > 0 ? (
+            post.comments.map((comment) => (
+              <div key={comment.id} className="mb-2">
+                <p>
+                  <span className="font-semibold">{comment.userName}: </span>
+                  {comment.content}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500">No comments yet</p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

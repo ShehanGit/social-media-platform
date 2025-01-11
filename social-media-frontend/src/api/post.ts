@@ -1,6 +1,16 @@
-// src/api/posts.ts
 import api from '../utils/axios';
-import { Post, PaginatedResponse } from '../types';
+import { Post } from '../types';
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
 
 interface CreatePostData {
   caption: string;
