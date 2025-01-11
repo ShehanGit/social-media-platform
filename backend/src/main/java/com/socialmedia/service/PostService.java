@@ -1,5 +1,6 @@
 package com.socialmedia.service;
 
+import com.socialmedia.dto.PostResponse;
 import com.socialmedia.exception.ResourceNotFoundException;
 import com.socialmedia.model.Post;
 import com.socialmedia.repository.PostRepository;
@@ -68,10 +69,28 @@ public class PostService {
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
     }
 
-    public Page<Post> getAllPosts(Pageable pageable) {
-        return postRepository.findAllByOrderByCreatedAtDesc(pageable);
+    public Page<PostResponse> getAllPosts(Pageable pageable) {
+        Page<Post> posts = postRepository.findAllByOrderByCreatedAtDesc(pageable);
+        return posts.map(this::convertToPostResponse);
     }
 
+    private PostResponse convertToPostResponse(Post post) {
+        return PostResponse.builder()
+                .id(post.getId())
+                .caption(post.getCaption())
+                .mediaUrl(post.getMediaUrl())
+                .mediaType(post.getMediaType())
+                .createdAt(post.getCreatedAt().toString())
+                .updatedAt(post.getUpdatedAt().toString())
+                .user(PostResponse.UserSummary.builder()
+                        .id(post.getUser().getId())
+                        .username(post.getUser().getUsername())
+                        .profilePictureUrl(post.getUser().getProfilePictureUrl())
+                        .build())
+                .likesCount(post.getLikes().size())
+                .commentsCount(post.getComments().size())
+                .build();
+    }
     public Page<Post> getPostsByUser(String userEmail, Pageable pageable) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));

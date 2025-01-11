@@ -1,5 +1,6 @@
 package com.socialmedia.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.socialmedia.user.User;
@@ -28,6 +29,7 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @JsonBackReference
     @ManyToOne
     @JoinColumn(name = "post_id", nullable = false)
     private Post post;

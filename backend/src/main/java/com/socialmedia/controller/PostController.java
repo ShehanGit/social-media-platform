@@ -1,6 +1,7 @@
 package com.socialmedia.controller;
 
 import com.socialmedia.dto.PostDto;
+import com.socialmedia.dto.PostResponse;
 import com.socialmedia.model.Post;
 import com.socialmedia.service.PostService;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/v1/posts")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 @RequiredArgsConstructor
 public class PostController {
     private final PostService postService;
@@ -38,7 +39,7 @@ public class PostController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Post>> getAllPosts(
+    public ResponseEntity<Page<PostResponse>> getAllPosts(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy
