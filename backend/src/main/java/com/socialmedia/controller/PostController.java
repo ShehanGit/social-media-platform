@@ -1,5 +1,6 @@
 package com.socialmedia.controller;
 
+import com.socialmedia.dto.PostDto;
 import com.socialmedia.model.Post;
 import com.socialmedia.service.PostService;
 import lombok.RequiredArgsConstructor;
