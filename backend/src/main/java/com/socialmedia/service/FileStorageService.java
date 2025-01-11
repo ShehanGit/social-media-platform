@@ -1,13 +1,10 @@
 package com.socialmedia.service;
 
 import com.socialmedia.config.StorageProperties;
-     W
-A''
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;yytu 2334456jkg,mdxha
-
+import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.UUID;
