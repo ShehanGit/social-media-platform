@@ -1,17 +1,21 @@
 /** @type {import('tailwindcss').Config} */
-
-const flowbite = require("flowbite-react/tailwind");
-
-module.exports = {
-  content: ["./src/**/*.{js,jsx,ts,tsx}",
-    flowbite.content()
-
+export default {
+  content: [
+    "./index.html",
+    "./src/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          // ... add more shades as needed
+        }
+      }
+    },
   },
   plugins: [
-    flowbite.plugin(),
-
+    require('@tailwindcss/forms'),
   ],
-};
+}

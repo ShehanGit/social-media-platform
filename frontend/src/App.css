@@ -1,26 +1,42 @@
-.dark {
-  background-color: #1a202c; /* Dark grey for dark mode */
-  color: white;
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
 }
 
-/* App.css or another CSS file */
-.App {
-  font-family: 'Arial', sans-serif;
+.logo {
+  height: 6em;
+  padding: 1.5em;
+  will-change: filter;
+  transition: filter 300ms;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
 }
 
-.bg-blue-600:hover {
-  background-color: #2563eb; /* Tailwind color for hover state */
-}
-
-/* Adjust the space between sections */
-@media (max-width: 768px) {
-  .flex {
-    flex-direction: column;
-    align-items: center;
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
   }
-
-
-  .max-w-md {
-    max-width: 100%; /* Use full width for the content section on smaller screens */
+  to {
+    transform: rotate(360deg);
   }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
 }
