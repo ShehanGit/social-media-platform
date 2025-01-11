@@ -13,21 +13,18 @@ export interface User {
   
   export interface Post {
     id: number;
+    caption: string;
+    mediaUrl: string | null;
+    mediaType: 'IMAGE' | 'VIDEO' | null;
+    createdAt: string;
+    updatedAt: string;
     user: {
       id: number;
       username: string;
       profilePictureUrl: string | null;
-      firstname: string;
-      lastname: string;
-      email: string;
     };
-    caption: string;
-    mediaUrl: string | null;
-    mediaType?: 'IMAGE' | 'VIDEO';
-    createdAt: string;
-    updatedAt: string;
-    likes: Like[];
-    comments: Comment[];
+    likesCount: number;
+    commentsCount: number;
   }
   
   export interface Comment {
@@ -89,3 +86,8 @@ export interface User {
     phone?: string;
     location?: string;
   }
+
+  export const config = {
+    API_URL: 'http://localhost:8080/api/v1',
+    MEDIA_URL: 'http://localhost:8080'  
+  };
