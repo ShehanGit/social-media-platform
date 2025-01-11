@@ -79,9 +79,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const response = await authAPI.login({ email, password });
       localStorage.setItem('token', response.token);
-      
-      const userData = await usersAPI.getCurrentUser();
-      setUser(userData);
+      // const userData = await usersAPI.getCurrentUser();
+      // setUser(userData);
       setIsAuthenticated(true); // Add this
       
       navigate('/');
@@ -127,7 +126,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     user,
     isLoading,
-    isAuthenticated: isAuthenticated,
+    isAuthenticated,
     login,
     register,
     logout,

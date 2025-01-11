@@ -24,7 +24,6 @@ interface RelationshipStatus {
 export const usersAPI = {
   getCurrentUser: async (): Promise<User> => {
     const response = await api.get<User>('/users/me');
-    console.log(response);
     return response.data;
   },
 
