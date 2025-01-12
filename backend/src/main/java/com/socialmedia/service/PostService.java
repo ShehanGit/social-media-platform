@@ -29,7 +29,6 @@ public class PostService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // Handle file upload
         String fileName = null;
         Post.MediaType mediaType = null;
 
@@ -43,7 +42,6 @@ public class PostService {
 
             Files.copy(mediaFile.getInputStream(), uploadPath.resolve(fileName));
 
-            // Determine media type
             String contentType = mediaFile.getContentType();
             if (contentType != null) {
                 if (contentType.startsWith("image/")) {
@@ -74,6 +72,11 @@ public class PostService {
         return posts.map(this::convertToPostResponse);
     }
 
+    public Page<PostResponse> getPostsByLikes(Pageable pageable) {
+        Page<Post> posts = postRepository.findAllByOrderByLikesDesc(pageable);
+        return posts.map(this::convertToPostResponse);
+    }
+
     private PostResponse convertToPostResponse(Post post) {
         return PostResponse.builder()
                 .id(post.getId())
@@ -91,6 +94,7 @@ public class PostService {
                 .commentsCount(post.getComments().size())
                 .build();
     }
+
     public Page<Post> getPostsByUser(String userEmail, Pageable pageable) {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
@@ -117,7 +121,6 @@ public class PostService {
             throw new IllegalStateException("User not authorized to delete this post");
         }
 
-        // Delete media file if exists
         if (post.getMediaUrl() != null) {
             String fileName = post.getMediaUrl().substring(post.getMediaUrl().lastIndexOf('/') + 1);
             Path filePath = Paths.get(uploadDir + fileName);
@@ -125,9 +128,5 @@ public class PostService {
         }
 
         postRepository.delete(post);
-    }
-
-    public Page<Post> getPostsByLikes(Pageable pageable) {
-        return postRepository.findAllByOrderByLikesDesc(pageable);
     }
 }

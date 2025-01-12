@@ -49,13 +49,14 @@ public class PostController {
     }
 
     @GetMapping("/by-likes")
-    public ResponseEntity<Page<Post>> getPostsByLikes(
+    public ResponseEntity<Page<PostResponse>> getPostsByLikes(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
     ) {
         PageRequest pageRequest = PageRequest.of(page, size);
         return ResponseEntity.ok(postService.getPostsByLikes(pageRequest));
     }
+
 
     @GetMapping("/user")
     public ResponseEntity<Page<Post>> getUserPosts(
