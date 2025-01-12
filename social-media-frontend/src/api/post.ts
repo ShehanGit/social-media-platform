@@ -1,30 +1,9 @@
 import api from '../utils/axios';
-import { Post } from '../types';
-
-export interface PaginatedResponse<T> {
-  content: T[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-  };
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
-}
-
-interface CreatePostData {
-  caption: string;
-  media?: File;
-}
+import { Post, PaginatedResponse } from '../types';
 
 export const postsAPI = {
-  createPost: async (postData: CreatePostData): Promise<Post> => {
-    const formData = new FormData();
-    formData.append('caption', postData.caption);
-    if (postData.media) {
-      formData.append('media', postData.media);
-    }
-    const response = await api.post<Post>('/posts', formData, {
+  createPost: async (postData: FormData): Promise<Post> => {
+    const response = await api.post<Post>('/posts', postData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -53,11 +32,6 @@ export const postsAPI = {
     return response.data;
   },
 
-  getPost: async (postId: number): Promise<Post> => {
-    const response = await api.get<Post>(`/posts/${postId}`);
-    return response.data;
-  },
-
   getUserPosts: async (
     page: number = 0, 
     size: number = 10
@@ -68,8 +42,15 @@ export const postsAPI = {
     return response.data;
   },
 
+  getPost: async (postId: number): Promise<Post> => {
+    const response = await api.get<Post>(`/posts/${postId}`);
+    return response.data;
+  },
+
   updatePost: async (postId: number, caption: string): Promise<Post> => {
-    const response = await api.put<Post>(`/posts/${postId}`, { caption });
+    const response = await api.put<Post>(`/posts/${postId}`, {
+      caption
+    });
     return response.data;
   },
 

@@ -1,31 +1,42 @@
 export interface User {
+  id: number;
+  username: string;
+  firstname: string;
+  lastname: string;
+  email: string;
+  bio: string | null;
+  profilePictureUrl: string | null;
+  website: string | null;
+  phone: string | null;
+  location: string | null;
+}
+
+export interface Post {
+  id: number;
+  caption: string;
+  mediaUrl: string | null;
+  mediaType: 'IMAGE' | 'VIDEO' | null;
+  createdAt: string;
+  updatedAt: string;
+  user: {
     id: number;
     username: string;
-    firstname: string;
-    lastname: string;
-    email: string;
-    bio: string | null;
     profilePictureUrl: string | null;
-    website: string | null;
-    phone: string | null;
-    location: string | null;
-  }
-  
-  export interface Post {
-    id: number;
-    caption: string;
-    mediaUrl: string | null;
-    mediaType: 'IMAGE' | 'VIDEO' | null;
-    createdAt: string;
-    updatedAt: string;
-    user: {
-      id: number;
-      username: string;
-      profilePictureUrl: string | null;
-    };
-    likesCount: number;
-    commentsCount: number;
-  }
+  };
+  likesCount: number;
+  commentsCount: number;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+}
   
   export interface Comment {
     id: number;

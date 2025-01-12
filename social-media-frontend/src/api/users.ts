@@ -1,66 +1,71 @@
 import api from '../utils/axios';
-import { User, RelationshipStats, PaginatedResponse, UserUpdateData } from '../types';
+import { Post } from '../types';
 
-interface UserSummary {
-  id: number;
-  email: string;
-  firstname: string;
-  lastname: string;
-  isFollowing: boolean;
-  profilePictureUrl?: string;
+export interface PaginatedResponse<T> {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
 }
 
-export const usersAPI = {
-  getCurrentUser: async (): Promise<User> => {
-    const response = await api.get<User>('/users/me');
-    return response.data;
-  },
-
-  getRelationshipStats: async (userId: number): Promise<RelationshipStats> => {
-    const response = await api.get<RelationshipStats>(`/users/${userId}/relationships`);
-    return response.data;
-  },
-
-  updateUser: async (updateData: UserUpdateData): Promise<User> => {
-    const response = await api.put<User>('/users/me', updateData);
-    return response.data;
-  },
-
-  searchUsers: async (
-    query: string, 
-    page: number = 0, 
-    size: number = 20
-  ): Promise<PaginatedResponse<User>> => {
-    const response = await api.get<PaginatedResponse<User>>('/users/search', {
-      params: { query, page, size }
+export const postsAPI = {
+  createPost: async (postData: FormData): Promise<Post> => {
+    const response = await api.post<Post>('/posts', postData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
     return response.data;
   },
 
-  getFollowers: async (
-    userId: number, 
+  getPosts: async (
     page: number = 0, 
-    size: number = 20
-  ): Promise<PaginatedResponse<UserSummary>> => {
-    const response = await api.get<PaginatedResponse<UserSummary>>(`/users/${userId}/followers`, {
+    size: number = 10, 
+    sortBy: string = 'createdAt'
+  ): Promise<PaginatedResponse<Post>> => {
+    const response = await api.get<PaginatedResponse<Post>>('/posts', {
+      params: { page, size, sortBy }
+    });
+    return response.data;
+  },
+
+  getPostsByLikes: async (
+    page: number = 0, 
+    size: number = 10
+  ): Promise<PaginatedResponse<Post>> => {
+    const response = await api.get<PaginatedResponse<Post>>('/posts/by-likes', {
       params: { page, size }
     });
     return response.data;
   },
 
-  getFollowing: async (
-    userId: number, 
+  getUserPosts: async (
     page: number = 0, 
-    size: number = 20
-  ): Promise<PaginatedResponse<UserSummary>> => {
-    const response = await api.get<PaginatedResponse<UserSummary>>(`/users/${userId}/following`, {
+    size: number = 10
+  ): Promise<PaginatedResponse<Post>> => {
+    const response = await api.get<PaginatedResponse<Post>>('/posts/user', {
       params: { page, size }
     });
     return response.data;
   },
 
-  toggleFollow: async (userId: number): Promise<RelationshipStats> => {
-    const response = await api.post<RelationshipStats>(`/users/${userId}/follow`);
+  getPost: async (postId: number): Promise<Post> => {
+    const response = await api.get<Post>(`/posts/${postId}`);
     return response.data;
+  },
+
+  updatePost: async (postId: number, caption: string): Promise<Post> => {
+    const response = await api.put<Post>(`/posts/${postId}`, {
+      caption
+    });
+    return response.data;
+  },
+
+  deletePost: async (postId: number): Promise<void> => {
+    await api.delete(`/posts/${postId}`);
   }
 };
