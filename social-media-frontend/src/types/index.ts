@@ -72,6 +72,7 @@ export interface PaginatedResponse<T> {
     last: boolean;
   }
   
+  
   export interface AuthResponse {
     token: string;
   }

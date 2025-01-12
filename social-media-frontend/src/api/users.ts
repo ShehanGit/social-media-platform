@@ -1,20 +1,83 @@
 import api from '../utils/axios';
-import { Post } from '../types';
+import { User, RelationshipStats, PaginatedResponse, UserUpdateData } from '../types';
 
-export interface PaginatedResponse<T> {
-  content: T[];
-  pageable: {
-    pageNumber: number;
-    pageSize: number;
-  };
-  totalElements: number;
-  totalPages: number;
-  last: boolean;
+interface UserSummary {
+  id: number;
+  email: string;
+  firstname: string;
+  lastname: string;
+  isFollowing: boolean;
+  profilePictureUrl?: string;
 }
 
-export const postsAPI = {
-  createPost: async (postData: FormData): Promise<Post> => {
-    const response = await api.post<Post>('/posts', postData, {
+export const usersAPI = {
+  getCurrentUser: async (): Promise<User> => {
+    const response = await api.get<User>('/users/me');
+    return response.data;
+  },
+
+  getUserById: async (userId: number): Promise<User> => {
+    const response = await api.get<User>(`/users/${userId}`);
+    return response.data;
+  },
+
+  getUserByUsername: async (username: string): Promise<User> => {
+    const response = await api.get<User>(`/users/username/${username}`);
+    return response.data;
+  },
+
+  getRelationshipStats: async (userId: number): Promise<RelationshipStats> => {
+    const response = await api.get<RelationshipStats>(`/users/${userId}/relationships`);
+    return response.data;
+  },
+
+  updateUser: async (updateData: UserUpdateData): Promise<User> => {
+    const response = await api.put<User>('/users/me', updateData);
+    return response.data;
+  },
+
+  searchUsers: async (
+    query: string, 
+    page: number = 0, 
+    size: number = 20
+  ): Promise<PaginatedResponse<User>> => {
+    const response = await api.get<PaginatedResponse<User>>('/users/search', {
+      params: { query, page, size }
+    });
+    return response.data;
+  },
+
+  getFollowers: async (
+    userId: number, 
+    page: number = 0, 
+    size: number = 20
+  ): Promise<PaginatedResponse<UserSummary>> => {
+    const response = await api.get<PaginatedResponse<UserSummary>>(`/users/${userId}/followers`, {
+      params: { page, size }
+    });
+    return response.data;
+  },
+
+  getFollowing: async (
+    userId: number, 
+    page: number = 0, 
+    size: number = 20
+  ): Promise<PaginatedResponse<UserSummary>> => {
+    const response = await api.get<PaginatedResponse<UserSummary>>(`/users/${userId}/following`, {
+      params: { page, size }
+    });
+    return response.data;
+  },
+
+  toggleFollow: async (userId: number): Promise<RelationshipStats> => {
+    const response = await api.post<RelationshipStats>(`/users/${userId}/follow`);
+    return response.data;
+  },
+
+  updateProfilePicture: async (file: File): Promise<{ pictureUrl: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<{ pictureUrl: string }>('/users/me/profile-picture', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -22,50 +85,8 @@ export const postsAPI = {
     return response.data;
   },
 
-  getPosts: async (
-    page: number = 0, 
-    size: number = 10, 
-    sortBy: string = 'createdAt'
-  ): Promise<PaginatedResponse<Post>> => {
-    const response = await api.get<PaginatedResponse<Post>>('/posts', {
-      params: { page, size, sortBy }
-    });
+  getUserStats: async (userId: number): Promise<{ followersCount: number; followingCount: number }> => {
+    const response = await api.get<{ followersCount: number; followingCount: number }>(`/users/${userId}/stats`);
     return response.data;
-  },
-
-  getPostsByLikes: async (
-    page: number = 0, 
-    size: number = 10
-  ): Promise<PaginatedResponse<Post>> => {
-    const response = await api.get<PaginatedResponse<Post>>('/posts/by-likes', {
-      params: { page, size }
-    });
-    return response.data;
-  },
-
-  getUserPosts: async (
-    page: number = 0, 
-    size: number = 10
-  ): Promise<PaginatedResponse<Post>> => {
-    const response = await api.get<PaginatedResponse<Post>>('/posts/user', {
-      params: { page, size }
-    });
-    return response.data;
-  },
-
-  getPost: async (postId: number): Promise<Post> => {
-    const response = await api.get<Post>(`/posts/${postId}`);
-    return response.data;
-  },
-
-  updatePost: async (postId: number, caption: string): Promise<Post> => {
-    const response = await api.put<Post>(`/posts/${postId}`, {
-      caption
-    });
-    return response.data;
-  },
-
-  deletePost: async (postId: number): Promise<void> => {
-    await api.delete(`/posts/${postId}`);
   }
 };
