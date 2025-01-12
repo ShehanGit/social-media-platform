@@ -9,11 +9,8 @@ A comprehensive full-stack social media application built with Spring Boot, Reac
 JWT-based authentication with Spring Security
 User registration and login functionality
 Token-based session management
-Password encryption using BCrypt
 Protected routes and API endpoints
-Cross-Origin Resource Sharing (CORS) configuration
-Input validation for all forms
-Proper error handling and user feedback
+
 
 ### Post Management
 
@@ -54,7 +51,7 @@ Manage account settings
 ### Frontend Technologies
 
 React 18.3.1 with Vite 6.0.5
-TypeScript support
+TypeScript support 
 TailwindCSS 3.4.17 for styling
 React Query 3.39.3 for state management
 React Router DOM 7.1.1 for routing
