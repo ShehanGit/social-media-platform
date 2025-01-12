@@ -23,7 +23,6 @@ Sort by creation time
 Sort by number of likes
 
 
-Pagination support for efficient data loading
 
 ### Social Interactions
 
@@ -70,7 +69,7 @@ Spring Data JPA
 MySQL 8 Database
 Project Lombok
 Maven for dependency management
-Cross-Origin Resource Sharing (CORS) support
+
 
 
 ## Setup Instructions
