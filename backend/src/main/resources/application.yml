@@ -28,3 +28,7 @@ spring:
 
 storage:
   upload-dir: uploads
+
+
+recaptcha:
+  secret: 6Lf9jbMqAAAAAD7_g3n9H4-NmXw52Cffl-NCCKrI

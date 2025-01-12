@@ -80,6 +80,7 @@ export interface PaginatedResponse<T> {
   export interface LoginCredentials {
     email: string;
     password: string;
+    captchaToken: string;
   }
   
   export interface RegisterData {
@@ -87,6 +88,7 @@ export interface PaginatedResponse<T> {
     lastname: string;
     email: string;
     password: string;
+    captchaToken: string;
   }
   
   export interface UserUpdateData {

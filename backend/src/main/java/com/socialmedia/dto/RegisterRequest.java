@@ -1,4 +1,4 @@
-package com.socialmedia.auth;
+package com.socialmedia.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -10,9 +10,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RegisterRequest {
-  private String firstname;
-  private String lastname;
-  private String email;
-  private String password;
-  private String captchaToken;
+    private String firstname;
+    private String lastname;
+    private String email;
+    private String password;
+    private String captchaToken;
 }
